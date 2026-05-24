@@ -142,21 +142,21 @@
     const size=clock.clientWidth;const cx=size/2, cy=size/2;
 
     // angka romawi
-    const numR=size*0.405;
+    const numR=size*0.385;
     numerals.forEach(el=>{
       const n=+el.dataset.n;const a=n*30*Math.PI/180;
       const p=pos(a,numR,cx,cy);
       el.style.left=p.x+'px';el.style.top=p.y+'px';
-      el.style.fontSize=(size*0.072)+'px';
+      el.style.fontSize=(size*0.070)+'px';
     });
     // tick
     ticks.forEach(t=>{
       const bar=t.querySelector('i');
       const major=t.classList.contains('major');
-      bar.style.width=(size*(major?0.006:0.0035))+'px';
-      bar.style.height=(size*(major?0.030:0.016))+'px';
-      bar.style.top=(-size*0.455)+'px';
-      if(!t.classList.contains('lit'))bar.style.opacity=major?'1':'0.55';
+      bar.style.width=(size*(major?0.0055:0.0032))+'px';
+      bar.style.height=(size*(major?0.026:0.014))+'px';
+      bar.style.top=(-size*0.472)+'px';
+      if(!t.classList.contains('lit'))bar.style.opacity=major?'1':'0.5';
       else bar.style.opacity='1';
     });
 
