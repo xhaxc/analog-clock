@@ -127,9 +127,10 @@
     el.dataset.n=n;
     numLayer.appendChild(el);
   }
-  for(let n=0;n<12;n++){
+  for(let n=0;n<60;n++){
     const t=document.createElement('div');
-    t.className='tick';t.style.transform='rotate('+(n*30)+'deg)';
+    t.className='tick'+(n%5===0?' major':'');
+    t.style.transform='rotate('+(n*6)+'deg)';
     const bar=document.createElement('i');t.appendChild(bar);
     numLayer.appendChild(t);
   }
@@ -160,10 +161,13 @@
       el.style.left=p.x+'px';el.style.top=p.y+'px';
       el.style.fontSize=(size*0.072)+'px';
     });
-    numLayer.querySelectorAll('.tick i').forEach(bar=>{
-      bar.style.width=(size*0.006)+'px';
-      bar.style.height=(size*0.028)+'px';
+    numLayer.querySelectorAll('.tick').forEach(t=>{
+      const bar=t.querySelector('i');
+      const major=t.classList.contains('major');
+      bar.style.width=(size*(major?0.006:0.0035))+'px';
+      bar.style.height=(size*(major?0.030:0.016))+'px';
       bar.style.top=(-size*0.455)+'px';
+      bar.style.opacity=major?'1':'0.55';
     });
 
     const now=new Date();
