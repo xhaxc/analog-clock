@@ -104,20 +104,9 @@
     <div class="hub"></div>
   </div>
 
-  <div class="caption">jam digital <span class="x">×</span> jam analog</div>
-
-  <div class="readout" id="readout">--:--:-- <small>realtime</small></div>
-
-  <div class="legend">
-    <span><i class="dot h"></i> jam</span>
-    <span><i class="dot m"></i> menit</span>
-    <span><i class="dot s"></i> detik</span>
-  </div>
-
 <script>
 (function(){
   const clock = document.getElementById('clock');
-  const readout = document.getElementById('readout');
   const ROMAN = ['','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
 
   // jarum dipendekkan supaya semua angka + panah tetap di dalam muka jam (radius numeral ~0.40)
@@ -219,7 +208,6 @@
     }
 
     const pad=n=>String(n).padStart(2,'0');
-    readout.innerHTML=pad(h)+':'+pad(m)+':'+pad(s)+' <small>realtime</small>';
     requestAnimationFrame(render);
   }
 
