@@ -6,7 +6,7 @@
 <title>jam digital × jam analog</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=Cormorant+Garamond:wght@500;600&family=Kalam:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Kalam:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root{
     --paper:#f4f1e8;
@@ -25,8 +25,7 @@
     color:var(--ink);
     min-height:100vh;
     display:flex;flex-direction:column;align-items:center;justify-content:center;
-    gap:clamp(14px,3vw,26px);
-    padding:24px 16px 36px;overflow:hidden;
+    padding:24px 16px;overflow:hidden;
   }
   body::before{
     content:"";position:fixed;inset:0;pointer-events:none;opacity:.35;mix-blend-mode:multiply;
@@ -38,8 +37,7 @@
     width:min(92vw, 520px);
     aspect-ratio:1/1;
     border-radius:50%;
-    background:
-      radial-gradient(circle at 50% 42%, #ffffff 0%, var(--face) 60%, #f1ecdf 100%);
+    background:radial-gradient(circle at 50% 42%, #ffffff 0%, var(--face) 60%, #f1ecdf 100%);
     border:4px solid var(--ink);
     box-shadow:
       0 10px 30px rgba(0,0,0,.12),
@@ -53,11 +51,21 @@
     position:absolute;transform:translate(-50%,-50%);
     font-family:"Cormorant Garamond",serif;font-weight:600;
     color:var(--ink);user-select:none;line-height:1;
+    transition:color .15s, text-shadow .15s, transform .15s;
   }
+  .numeral.lit{
+    color:var(--accent);
+    text-shadow:0 0 10px rgba(192,57,43,.6);
+  }
+
   .tick{position:absolute;left:50%;top:50%;transform-origin:0 0;}
   .tick i{
     position:absolute;background:var(--ink-soft);border-radius:2px;
-    transform:translate(-50%,0);
+    transform:translate(-50%,0);transition:background .12s, box-shadow .12s;
+  }
+  .tick.lit i{
+    background:var(--accent)!important;
+    box-shadow:0 0 8px 1px rgba(192,57,43,.8);
   }
 
   .digit{
@@ -75,26 +83,6 @@
     background:var(--ink);transform:translate(-50%,-50%);
     box-shadow:0 0 0 4px var(--face),0 0 0 6px rgba(0,0,0,.15);z-index:5;
   }
-
-  .caption{
-    font-family:"Anton",sans-serif;font-size:clamp(22px,7vw,46px);letter-spacing:.5px;
-    color:#fff;-webkit-text-stroke:clamp(2px,.9vw,4px) #000;paint-order:stroke fill;
-    text-transform:lowercase;white-space:nowrap;transform:rotate(-1deg);
-  }
-  .caption .x{color:var(--accent);padding:0 .12em;}
-
-  .readout{
-    font-family:"Anton",sans-serif;font-size:clamp(18px,5vw,28px);letter-spacing:3px;color:var(--ink);
-    display:flex;align-items:baseline;gap:12px;
-  }
-  .readout small{font-family:"Kalam",cursive;font-size:.5em;color:var(--ink-faint);letter-spacing:0;}
-
-  .legend{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;font-size:clamp(13px,3.4vw,16px);color:var(--ink-soft);}
-  .legend span{display:inline-flex;align-items:center;gap:7px;}
-  .dot{width:11px;height:11px;border-radius:50%;display:inline-block;}
-  .dot.h{background:var(--ink);}
-  .dot.m{background:var(--ink-soft);}
-  .dot.s{background:var(--accent);}
 </style>
 </head>
 <body>
@@ -109,33 +97,33 @@
   const clock = document.getElementById('clock');
   const ROMAN = ['','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
 
-  // jarum dipendekkan supaya semua angka + panah tetap di dalam muka jam (radius numeral ~0.40)
   const hands = {
     h: { copies: 3, start: 0.065, step: 0.052, font: 0.050, color:'var(--ink)' },
     m: { copies: 4, start: 0.065, step: 0.055, font: 0.045, color:'var(--ink-soft)' },
     s: { copies: 5, start: 0.065, step: 0.050, font: 0.040, color:'var(--accent)' }
   };
 
-  // ---- bangun angka romawi + tick ----
+  // ---- angka romawi ----
   const numLayer = document.createElement('div');
   numLayer.style.cssText='position:absolute;inset:0;';
   clock.appendChild(numLayer);
+  const numerals=[];
   for(let n=1;n<=12;n++){
-    const a = n*30*Math.PI/180;
     const el=document.createElement('div');
-    el.className='numeral';el.textContent=ROMAN[n];
-    el.dataset.n=n;
-    numLayer.appendChild(el);
+    el.className='numeral';el.textContent=ROMAN[n];el.dataset.n=n;
+    numLayer.appendChild(el);numerals.push(el);
   }
+  // ---- 60 tick (major tiap jam) ----
+  const ticks=[];
   for(let n=0;n<60;n++){
     const t=document.createElement('div');
     t.className='tick'+(n%5===0?' major':'');
     t.style.transform='rotate('+(n*6)+'deg)';
     const bar=document.createElement('i');t.appendChild(bar);
-    numLayer.appendChild(t);
+    numLayer.appendChild(t);ticks.push(t);
   }
 
-  // ---- siapkan jarum (angka + panah, dipakai ulang) ----
+  // ---- jarum (angka + panah) ----
   const pool={};const arrows={};
   for(const key of ['h','m','s']){
     const layer=document.createElement('div');
@@ -153,21 +141,23 @@
   function render(){
     const size=clock.clientWidth;const cx=size/2, cy=size/2;
 
-    // posisikan angka romawi & tick relatif ukuran
+    // angka romawi
     const numR=size*0.405;
-    numLayer.querySelectorAll('.numeral').forEach(el=>{
+    numerals.forEach(el=>{
       const n=+el.dataset.n;const a=n*30*Math.PI/180;
       const p=pos(a,numR,cx,cy);
       el.style.left=p.x+'px';el.style.top=p.y+'px';
       el.style.fontSize=(size*0.072)+'px';
     });
-    numLayer.querySelectorAll('.tick').forEach(t=>{
+    // tick
+    ticks.forEach(t=>{
       const bar=t.querySelector('i');
       const major=t.classList.contains('major');
       bar.style.width=(size*(major?0.006:0.0035))+'px';
       bar.style.height=(size*(major?0.030:0.016))+'px';
       bar.style.top=(-size*0.455)+'px';
-      bar.style.opacity=major?'1':'0.55';
+      if(!t.classList.contains('lit'))bar.style.opacity=major?'1':'0.55';
+      else bar.style.opacity='1';
     });
 
     const now=new Date();
@@ -178,12 +168,28 @@
     const aM=(m+s/60)*6*Math.PI/180;
     const aS=(s+ms/1000)*6*Math.PI/180;
 
+    // ---- highlight: setrip yang ditunjuk jarum jam & menit ----
+    const degH=((h%12)+m/60)*30;       // derajat jarum jam
+    const degM=(m+s/60)*6;             // derajat jarum menit
+    const tickH=Math.round(degH/6)%60;
+    const tickM=Math.round(degM/6)%60;
+    ticks.forEach((t,i)=>{
+      t.classList.toggle('lit', i===tickH || i===tickM);
+    });
+    // ---- highlight angka romawi kalau jarum jam/menit pas di situ ----
+    numerals.forEach(el=>{
+      const n=+el.dataset.n;
+      const numDeg=(n%12)*30;
+      const dH=Math.abs(((degH-numDeg+540)%360)-180);
+      const dM=Math.abs(((degM-numDeg+540)%360)-180);
+      el.classList.toggle('lit', dH<8 || dM<8);
+    });
+
     const setup=[
       {key:'h',value:h12,angle:aH},
       {key:'m',value:m,angle:aM},
       {key:'s',value:s,angle:aS}
     ];
-
     for(const hand of setup){
       const cfg=hands[hand.key];
       const label=hand.key==='h'?String(hand.value):String(hand.value).padStart(2,'0');
@@ -199,7 +205,6 @@
         el.style.fontSize=fontPx+'px';
         el.style.opacity=(1-i*0.05).toFixed(2);
       }
-      // anak panah di ujung jarum
       const arrowR=size*(lastR+cfg.step*0.95);
       const ap=pos(hand.angle,arrowR,cx,cy);
       const w=size*0.018;const hgt=size*0.030;
@@ -211,7 +216,6 @@
       ar.style.transform='translate(-50%,-50%) rotate('+(hand.angle*180/Math.PI)+'deg)';
     }
 
-    const pad=n=>String(n).padStart(2,'0');
     requestAnimationFrame(render);
   }
 
